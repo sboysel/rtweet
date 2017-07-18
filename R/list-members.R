@@ -23,6 +23,8 @@
 #'   variable in the tokens vignette (in r, send \code{?tokens} to
 #'   console).
 #' @return data
+#' 
+#' @export
 list_members <- function(list_id,
                          slug = NULL,
                          owner_user = NULL,

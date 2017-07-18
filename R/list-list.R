@@ -16,6 +16,8 @@
 #'   variable in the tokens vignette (in r, send \code{?tokens} to
 #'   console).
 #' @return data
+#' 
+#' @export
 list_list <- function(user, reverse = FALSE, token = NULL) {
   query <- "lists/list"
   params <- list(user = user,
