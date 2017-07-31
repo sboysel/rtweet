@@ -4,10 +4,10 @@
 \alias{tweets_df_}
 \title{tweets_df}
 \usage{
-tweets_df_(x)
+tweets_df_(dat)
 }
 \arguments{
-\item{x}{Nested list parsed from Twitter's returned json object.}
+\item{dat}{Nested list parsed from Twitter's returned json object.}
 }
 \value{
 tbl

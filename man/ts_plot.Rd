@@ -4,20 +4,17 @@
 \alias{ts_plot}
 \title{ts plot}
 \usage{
-ts_plot(data, by = "days", group = NULL, ...)
+ts_plot(data, by, ...)
 }
 \arguments{
 \item{data}{Data frame or grouped data frame.}
 
-\item{by}{Desired interval of time expressed as numeral plus secs, mins,
-hours, days, weeks, months, years. If a numeric is provided, the value
-is assumed to be in seconds.}
+\item{by}{Desired interval of time expressed as numeral plus secs,
+mins, hours, days, weeks, months, years. If a numeric is
+provided, the value is assumed to be in seconds.}
 
-\item{group}{Name of grouping variable to construct multiple time series,
-which still returns a data frame but it includes the group variable as
-a named column.}
-
-\item{\dots}{Passed along to trim_time. Most likely used to specify timezone.}
+\item{...}{For info on all possible arguments see
+\code{\link{ts_plot.default}}.}
 }
 \value{
 Data frame with time, n, and grouping column if applicable.

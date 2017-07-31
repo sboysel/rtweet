@@ -1,5 +1,15 @@
 #' search_tweets
 #'
+#' @param q Search query.
+#' @param n Number of desired tweets
+#' @param ... For all args see \code{\link{search_tweets.default}}. 
+#' @export
+search_tweets <- function(q, n, ...) {
+  UseMethod("search_tweets")
+}
+
+#' search_tweets.default
+#'
 #' @description Returns two data frames (tweets data and users data)
 #'   using a provided search query.
 #'
@@ -50,15 +60,6 @@
 #'   useful to leverage \code{retryonratelimit} for sets of tweets
 #'   and \code{max_id} to allow results to continue where previous
 #'   efforts left off.
-#' @param usr Logical indicating whether to return a data frame of
-#'   users data. Users data is stored as an attribute. To access this
-#'   data, see \code{\link{users_data}}. Useful for marginal returns in
-#'   memory demand. However, any gains are likely to be negligible as
-#'   Twitter's API invariably returns this data anyway. As such, this
-#'   defaults to true, see \code{\link{users_data}}.
-#' @param full_text Logical, indicating whether to return full text of
-#'   tweets. Defaults to TRUE. Setting this to FALSE will truncate any
-#'   tweet that exceed 140 characters.
 #' @param parse Logical, indicating whether to return parsed
 #'   data.frame, if true, or nested list (fromJSON), if false. By default,
 #'   \code{parse = TRUE} saves users from the wreck of time and frustration
@@ -204,33 +205,31 @@
 #'   data frame.
 #' @family tweets
 #' @export
-search_tweets <- function(q = "",
-  n = 100,
-  type = "recent",
-  geocode = NULL,
-  max_id = NULL,
-  include_rts = TRUE,
-  full_text = TRUE,
-  parse = TRUE,
-  usr = TRUE,
-  token = NULL,
-  retryonratelimit = FALSE,
-  verbose = TRUE,
-  adjtimer = 20,
-  exact = FALSE,
-  from = NULL,
-  to = NULL,
-  list = NULL,
-  mention = NULL,
-  hashtag = NULL,
-  filter_media = FALSE,
-  filter_native_video= FALSE,
-  filter_vine = FALSE,
-  filter_periscope = FALSE,
-  filter_images = FALSE,
-  filter_twimg = FALSE,
-  filter_links = FALSE,
-  ...) {
+search_tweets.default <- function(q = "",
+                                  n = 100,
+                                  type = "recent",
+                                  geocode = NULL,
+                                  max_id = NULL,
+                                  include_rts = TRUE,
+                                  parse = TRUE,
+                                  token = NULL,
+                                  retryonratelimit = FALSE,
+                                  verbose = TRUE,
+                                  adjtimer = 20,
+                                  exact = FALSE,
+                                  from = NULL,
+                                  to = NULL,
+                                  list = NULL,
+                                  mention = NULL,
+                                  hashtag = NULL,
+                                  filter_media = FALSE,
+                                  filter_native_video= FALSE,
+                                  filter_vine = FALSE,
+                                  filter_periscope = FALSE,
+                                  filter_images = FALSE,
+                                  filter_twimg = FALSE,
+                                  filter_links = FALSE,
+                                  ...) {
 
   ## check token and get rate limit data
   token <- check_token(token, "search/tweets")
@@ -239,16 +238,14 @@ search_tweets <- function(q = "",
   reset <- rtlimit[["reset"]]
   mins <- as.numeric(reset, "mins")
 
-  if (any(n <= remaining, !retryonratelimit)) {
+  if (n <= remaining || !retryonratelimit) {
     rt <- .search_tweets(
       q = q, n = n,
       type = type,
       geocode = geocode,
       max_id = max_id,
       include_rts = include_rts,
-      full_text = full_text,
       parse = parse,
-      usr = usr,
       token = token,
       verbose = verbose,
       exact = exact,
@@ -292,9 +289,7 @@ search_tweets <- function(q = "",
           geocode = geocode,
           max_id = maxid,
           include_rts = include_rts,
-          full_text = full_text,
           parse = parse,
-          usr = usr,
           token = token,
           verbose = verbose,
           exact = exact,
@@ -331,44 +326,38 @@ search_tweets <- function(q = "",
       units(reset) <- "mins"
     }
     ## get users data if applicable
-    if (usr) {
-      users <- do.call("rbind", users_data(rt))
-      rt <- do.call("rbind", rt)
-      attr(rt, "users") <- users
-    } else {
-      rt <- do.call("rbind", rt)
-    }
+    users <- do.call("rbind", users_data(rt))
+    rt <- do.call("rbind", rt)
+    attr(rt, "users") <- users
   }
   rt
 }
 
 
 .search_tweets <- function(q,
-  n = 100,
-  check = FALSE,
-  geocode = NULL,
-  type = "recent",
-  max_id = NULL,
-  include_rts = TRUE,
-  full_text = TRUE,
-  parse = TRUE,
-  usr = TRUE,
-  token = NULL,
-  verbose = TRUE,
-  exact = FALSE,
-  from = NULL,
-  to = NULL,
-  list = NULL,
-  mention = NULL,
-  hashtag = NULL,
-  filter_media = FALSE,
-  filter_native_video= FALSE,
-  filter_vine = FALSE,
-  filter_periscope = FALSE,
-  filter_images = FALSE,
-  filter_twimg = FALSE,
-  filter_links = FALSE,
-  ...) {
+                           n = 100,
+                           check = FALSE,
+                           geocode = NULL,
+                           type = "recent",
+                           max_id = NULL,
+                           include_rts = TRUE,
+                           parse = TRUE,
+                           token = NULL,
+                           verbose = TRUE,
+                           exact = FALSE,
+                           from = NULL,
+                           to = NULL,
+                           list = NULL,
+                           mention = NULL,
+                           hashtag = NULL,
+                           filter_media = FALSE,
+                           filter_native_video= FALSE,
+                           filter_vine = FALSE,
+                           filter_periscope = FALSE,
+                           filter_images = FALSE,
+                           filter_twimg = FALSE,
+                           filter_links = FALSE,
+                           ...) {
   ## path name
   query <- "search/tweets"
 
@@ -383,8 +372,8 @@ search_tweets <- function(q = "",
   if (!is.null(from)) {
     if (any(grepl(" ", from))) {
       stop(paste("Object \"from\" should contain vector of screen names",
-        "none of which should include spaces."),
-        call. = FALSE)
+                 "none of which should include spaces."),
+           call. = FALSE)
     }
     from <- paste(paste0("from:", from), collapse = " ")
     q <- paste(q, from)
@@ -392,8 +381,8 @@ search_tweets <- function(q = "",
   if (!is.null(to)) {
     if (any(grepl(" ", to))) {
       stop(paste("Object \"to\" should contain vector of screen names",
-        "none of which should include spaces."),
-        call. = FALSE)
+                 "none of which should include spaces."),
+           call. = FALSE)
     }
     to <- paste(paste0("to:", to), collapse = " ")
     q <- paste(q, to)
@@ -401,27 +390,29 @@ search_tweets <- function(q = "",
   if (!is.null(mention)) {
     if (any(grepl(" ", mention))) {
       stop(paste("Object \"mention\" should contain vector of screen names",
-        "none of which should include spaces."),
-        call. = FALSE)
+                 "none of which should include spaces."),
+           call. = FALSE)
     }
     mention <- paste(paste0("@", mention), collapse = " ")
-    q <- paste(q, mention)
+    mention <- 
+      q <- paste(q, mention)
   }
   if (!is.null(hashtag)) {
     if (any(grepl(" ", hashtag))) {
-      stop(paste("Object \"hashtag\" should contain vector of screen names",
-        "none of which should include spaces."),
-        call. = FALSE)
+      stop(paste("Object \"hashtag\" should contain vector of hashtags",
+                 "none of which should include spaces."),
+           call. = FALSE)
     }
     hashtag <- paste(paste0("#", hashtag), collapse = " ")
+    hashtag <- gsub("##", "#", hashtag)
     q <- paste(q, hashtag)
   }
   if (!is.null(list)) {
     if (any(grepl(" ", list))) {
       stop(paste("Object \"list\" should contain vector of Twitter lists",
-        "none of which should include spaces. If the list actually",
-        "has spaces in it, try using dashes instead"),
-        call. = FALSE)
+                 "none of which should include spaces. If the list actually",
+                 "has spaces in it, try using dashes instead"),
+           call. = FALSE)
     }
     from <- paste(paste0("list:", from), collapse = " ")
     q <- paste(q, from)
@@ -446,20 +437,15 @@ search_tweets <- function(q = "",
   ## only select one type
   if (length(type) > 1) {
     stop("can only select one search type. Try type = 'recent'.",
-      call. = FALSE)
+         call. = FALSE)
   }
   if (!isTRUE(tolower(type) %in% c("mixed", "recent", "popular"))) {
     stop("invalid search type - must be mixed, recent, or popular.",
-      call. = FALSE)
+         call. = FALSE)
   }
   ## if no retweets add filter to query
   if (!include_rts) q <- paste0(q, " -filter:retweets")
-  ## full text should be yes
-  if (full_text) {
-    full_text <- "extended"
-  } else {
-    full_text <- NULL
-  }
+  ## geocode prep
   if (!is.null(geocode)) {
 
     if (inherits(geocode, "coords")) {
@@ -474,12 +460,12 @@ search_tweets <- function(q = "",
 
   ## make params list
   params <- list(q = q,
-    result_type = type,
-    count = 100,
-    max_id = max_id,
-    tweet_mode = full_text,
-    geocode = geocode,
-    ...)
+                 result_type = type,
+                 count = 100,
+                 max_id = max_id,
+                 tweet_mode = "extended",
+                 geocode = geocode,
+                 ...)
   ## make url
   url <- make_url(
     query = query,
@@ -501,6 +487,33 @@ search_tweets <- function(q = "",
   tw
 }
 
+
+search_tweets_internal <- function(q, n, parse = FALSE, token = NULL, ...) {
+  rt <- .search_tweets_internal(
+    q = q, n = n, parse = parse, token, ...)
+}
+
+.search_tweets_internal <- function(q, n, parse, token = NULL, ...) {
+  n.times <- ceiling(n / 100)
+  query <- "search/tweets"
+  if (is.null(token)) {
+    token <- check_token(token)
+  }
+  params <- list(q = q,
+    result_type = "recent",
+    count = 100,
+    max_id = NULL,
+    tweet_mode = "extended",
+    ...)
+  url <- make_url(
+    query = query,
+    param = params)
+  tw <- scroller_(url, n, n.times, type = "search", token)
+  if (parse) {
+    tw <- tweets_with_users(tw)
+  }
+  tw
+}
 
 #' search_users
 #'
@@ -524,16 +537,11 @@ search_tweets <- function(q = "",
 #' @param n Numeric, specifying the total number of desired users to
 #'   return. Defaults to 100. Maximum number of users returned from
 #'   a single search is 1,000.
-#' @param full_text Logical, indicating whether to return full text of
-#'   tweets. Defaults to TRUE. Setting this to FALSE will truncate any
-#'   tweet that exceed 140 characters.
 #' @param parse Logical, indicating whether to return parsed
 #'   (data.frames) or nested list (fromJSON) object. By default,
 #'   \code{parse = TRUE} saves users from the time
 #'   [and frustrations] associated with disentangling the Twitter
 #'   API return objects.
-#' @param tw Logical indicating whether to return tweets data frame.
-#'   Defaults to true.
 #' @param token OAuth token. By default \code{token = NULL} fetches a
 #'   non-exhausted token from an environment variable. Find instructions
 #'   on how to create tokens and setup an environment variable in the
@@ -555,12 +563,15 @@ search_tweets <- function(q = "",
 #' @return Data frame of users returned by query.
 #' @family users
 #' @export
-search_users <- function(q, n = 20,
-  parse = TRUE,
-  full_text = TRUE,
-  tw = TRUE,
-  token = NULL,
-  verbose = TRUE) {
+search_users <- function(q, n, ...) {
+  UseMethod("seach_users")
+}
+
+
+search_users.default <- function(q, n = 20,
+                                 parse = TRUE,
+                                 token = NULL,
+                                 verbose = TRUE) {
 
   query <- "users/search"
   stopifnot(is_n(n), is.atomic(q))
@@ -577,11 +588,6 @@ search_users <- function(q, n = 20,
   if (nchar(q) > 500) {
     stop("q cannot exceed 500 characters.", call. = FALSE)
   }
-  if (full_text) {
-    full_text <- "extended"
-  } else {
-    full_text <- NULL
-  }
   if (verbose) message("Searching for users...")
 
   usr <- vector("list", n.times)
@@ -589,14 +595,16 @@ search_users <- function(q, n = 20,
   nrows <- NULL
 
   for (i in seq_len(n.times)) {
-    params <- list(q = q,
+    params <- list(
+      q = q,
       count = 20,
       page = i,
-      tweet_mode = full_text)
+      tweet_mode = "extended"
+    )
     url <- make_url(
       query = query,
-      param = params)
-
+      param = params
+    )
     r <- tryCatch(
       TWIT(get = TRUE, url, token),
       error = function(e) return(NULL))
@@ -604,6 +612,13 @@ search_users <- function(q, n = 20,
     if (is.null(r)) break
 
     usr[[i]] <- from_js(r)
+
+    if (i > 1L) {
+      if (identical(usr[[i]], usr[[i - 1L]])) {
+        usr <- usr[-i]
+        break
+      }
+    }
 
     if (identical(length(usr[[i]]), 0)) break
     if (isTRUE(is.numeric(NROW(usr[[i]])))) {
@@ -617,6 +632,9 @@ search_users <- function(q, n = 20,
   }
   if (parse) {
     usr <- users_with_tweets(usr)
+    uq <- !duplicated(usr$user_id)
+    usr <- usr[uq, ]
+    attr(usr, "tweets") <- tweets_data(usr)[uq, ]
   }
   if (verbose) {
     message("Finished collecting users!")

@@ -25,6 +25,11 @@ scroller <- function(url, n, n.times, type = NULL, ...) {
                 length(x[[i]][['statuses']]) == 0L))) {
       break
     }
+    if (has_name(x[[i]], "errors")) {
+      warning(x[[i]]$errors[["message"]], call. = FALSE)
+      x[[i]] <- list(data.frame())
+      break
+    }
     ## if reach counter, break
     counter <- counter +
       as.numeric(unique_id_count(x[[i]], type = type))
@@ -46,22 +51,24 @@ scroller <- function(url, n, n.times, type = NULL, ...) {
 }
 
 
-unique_id <- function(x) {
-  if ("statuses" %in% tolower(names(x))) {
-    x <- x[["statuses"]]
+scroller_ <- function(url, n, n.times, type = NULL, ...) {
+  ## check args
+  stopifnot(is_n(n), is_url(url))
+  ## if missing set to 1
+  ##if (missing(n.times)) n.times <- 1
+  ## initialize vector and counter
+  x <- vector("list", n.times)
+  counter <- 0
+  x <- httr::GET(url, ...)
+  for (i in seq_along(x)) {
+    ## send GET request
+    x[[i]] <- httr::GET(url, ...)
+    url[["max_id"]] <- x[[i]]$search_metadata$max_id_str
   }
-  if ("id_str" %in% names(x)) {
-    x[["id_str"]]
-  } else if ("ids" %in% names(x)) {
-    x[["ids"]]
-  } else if ("ids" %in% names(x[[1]])) {
-    x[[1]][["ids"]]
-  } else if ("status_id" %in% names(x)) {
-    x[["status_id"]]
-  } else if ("user_id" %in% names(x)) {
-    x[["user_id"]]
-  }
+  x
 }
+
+
 
 
 unique_id_count <- function(x, type = NULL) {
@@ -84,6 +91,26 @@ unique_id_count <- function(x, type = NULL) {
     return(0)
   length(unique(x))
 }
+
+
+
+unique_id <- function(x) {
+  if ("statuses" %in% tolower(names(x))) {
+    x <- x[["statuses"]]
+  }
+  if ("id_str" %in% names(x)) {
+    x[["id_str"]]
+  } else if ("ids" %in% names(x)) {
+    x[["ids"]]
+  } else if ("ids" %in% names(x[[1]])) {
+    x[[1]][["ids"]]
+  } else if ("status_id" %in% names(x)) {
+    x[["status_id"]]
+  } else if ("user_id" %in% names(x)) {
+    x[["user_id"]]
+  }
+}
+
 
 #' get max id
 #'

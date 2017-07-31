@@ -15,9 +15,6 @@
 #'   \code{get_timeline} returns tweets posted by the given user.
 #'   To return a user's home timeline feed, that is, the tweets posted
 #'   by accounts followed by a user, set the home to false.
-#' @param full_text Logical, indicating whether to return full text of
-#'   tweets. Defaults to TRUE. Setting this to FALSE will truncate any
-#'   tweet that exceed 140 characters.
 #' @param parse Logical, indicating whether to return parsed
 #'   (data.frames) or nested list (fromJSON) object. By default,
 #'   \code{parse = TRUE} saves users from the time
@@ -26,8 +23,6 @@
 #' @param check Logical indicating whether to remove check available
 #'   rate limit. Ensures the request does not exceed the maximum remaining
 #'   number of calls. Defaults to TRUE.
-#' @param usr Logical indicating whether to return users data frame.
-#'   Defaults to true.
 #' @param token OAuth token. By default \code{token = NULL} fetches a
 #'   non-exhausted token from an environment variable. Find instructions
 #'   on how to create tokens and setup an environment variable in the
@@ -58,13 +53,11 @@
 #'   the user provided.
 #' @family tweets
 #' @export
-get_timeline <- function(user, n = 200,
+get_timeline_ <- function(user, n = 200,
                          max_id = NULL,
                          home = FALSE,
-                         full_text = TRUE,
                          parse = TRUE,
                          check = TRUE,
-                         usr = TRUE,
                          token = NULL, ...) {
 
   stopifnot(is_n(n), is.atomic(user), is.atomic(max_id),
@@ -89,16 +82,11 @@ get_timeline <- function(user, n = 200,
     n.times <- ceiling(n / 200)
   }
 
-  if (full_text) {
-    full_text <- "extended"
-  } else {
-    full_text <- NULL
-  }
   params <- list(
     user_type = user,
     count = 200,
     max_id = max_id,
-    tweet_mode = full_text,
+    tweet_mode = "extended",
     ...)
 
   names(params)[1] <- .id_type(user)
@@ -111,6 +99,12 @@ get_timeline <- function(user, n = 200,
 
   if (parse) {
     tm <- tweets_with_users(tm)
+    usr <- users_data(tm)
+    if (nrow(usr) > 0L) {
+      uq <- !duplicated(usr$user_id)
+      usr <- usr[uq, ]
+      attr(tm, "users") <- usr[uq, ]
+    }
   }
 
   tm
@@ -149,7 +143,7 @@ get_timeline <- function(user, n = 200,
 #' }
 #' }
 #' @return Data frame or if parse is false then list.
-get_timelines <- function(users, n = 200, parse = TRUE, ...) {
+get_timelines2 <- function(users, n = 200, parse = TRUE, ...) {
   stopifnot(is.atomic(users), is.numeric(n))
   if (length(n) > 1L) {
     stopifnot(length(users) == length(n))
@@ -168,3 +162,4 @@ get_timelines <- function(users, n = 200, parse = TRUE, ...) {
   }
   usrs
 }
+
